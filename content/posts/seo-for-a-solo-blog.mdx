@@ -1,0 +1,56 @@
+---
+title: "SEO for a One-Person Blog: What Actually Matters"
+description: "Most SEO advice targets marketing teams. Here's the small subset that's worth a solo developer's time."
+date: "2026-04-21"
+tags: ["seo", "nextjs", "writing"]
+draft: false
+cover: "/images/covers/seo-for-a-solo-blog.png"
+---
+
+A solo dev blog isn't competing for "best running shoes." It's competing for
+a handful of long-tail, technical queries where correctness and clarity beat
+keyword density every time. That changes which parts of SEO are worth your
+time.
+
+## The things that actually move the needle
+
+1. **A real `<title>` and meta description per page**, written for the
+   human reading the search result, not stuffed with keywords.
+2. **One canonical URL per piece of content.** Trailing slashes, query
+   params, and `www` vs. non-`www` duplicates split your ranking signal.
+3. **Structured data.** A `BlogPosting` JSON-LD block costs a few lines and
+   makes it possible for search engines to show your publish date and
+   author directly in results.
+4. **A sitemap and an RSS feed.** Both are nearly free to generate from the
+   same post data you already have, and both make your content easier to
+   discover by something other than a search crawler.
+
+## What's mostly noise for this use case
+
+- Obsessing over keyword density in a 1,500-word technical explainer.
+- Backlink farming — a few genuine links from people who found the post
+  useful will outperform a hundred low-quality directory links.
+- Hyper-optimizing Core Web Vitals beyond "loads fast and doesn't jump
+  around." Diminishing returns set in quickly past that point.
+
+## A JSON-LD example
+
+```tsx title="app/blog/[slug]/page.tsx"
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.title,
+  datePublished: post.date,
+  description: post.description,
+};
+```
+
+Rendered into a `<script type="application/ld+json">` tag, this is the kind
+of detail that costs almost nothing and quietly compounds — every post
+benefits, forever, with zero ongoing maintenance.
+
+## The actual priority order
+
+Title and description tags, then a sitemap, then structured data, then
+everything else. Get those three right once at the template level and every
+future post inherits them automatically.

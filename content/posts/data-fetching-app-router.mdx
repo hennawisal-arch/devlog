@@ -1,0 +1,75 @@
+---
+title: "Data Fetching Patterns in the App Router"
+description: "Server Components changed where data fetching lives. Here's a practical map of the patterns that actually hold up."
+date: "2026-02-02"
+tags: ["nextjs", "react", "performance"]
+draft: false
+cover: "/images/covers/data-fetching-app-router.png"
+---
+
+The biggest mental shift moving to the App Router isn't the folder
+structure — it's that fetching data is no longer something you do *for* a
+component, it's something a component does itself.
+
+## Fetch where you render
+
+```tsx title="app/blog/page.tsx"
+async function BlogIndex() {
+  const posts = await getAllPosts();
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.slug}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+No `getStaticProps`, no prop drilling from a page-level function down
+through three components — the component that needs the data fetches it,
+right next to where it's used.
+
+## Parallel, not waterfall
+
+The easiest performance mistake is awaiting requests one after another when
+they don't depend on each other:
+
+```tsx title="app/blog/[slug]/page.tsx"
+// Slow: each request waits for the previous one
+const post = await getPost(slug);
+const related = await getRelatedPosts(post.tags);
+
+// Fast: both requests start at the same time
+const [post, related] = await Promise.all([
+  getPost(slug),
+  getRelatedPosts(slug),
+]);
+```
+
+That single change can cut a page's data-loading time roughly in half when
+the two calls are independent.
+
+## Caching is opt-in now
+
+The default `fetch` caching behavior changed across recent Next.js versions,
+so it's worth being explicit rather than relying on the implicit default:
+
+```ts
+fetch(url, { cache: "force-cache" }); // cache indefinitely
+fetch(url, { next: { revalidate: 3600 } }); // revalidate hourly
+fetch(url, { cache: "no-store" }); // always fresh
+```
+
+For statically generated content — like the posts on this blog — none of
+this even applies, since the MDX files are read from disk at build time and
+the resulting pages are static by default.
+
+## The pattern that holds up
+
+1. Fetch in the Server Component closest to where the data is used.
+2. Reach for `Promise.all` the moment you have two independent calls.
+3. Only reach for a client-side fetch when the data genuinely depends on
+   user interaction.
+
+Everything else is a variation on those three rules.

@@ -1,0 +1,60 @@
+---
+title: "Why MDX Is the Right Tool for a Developer Blog"
+description: "A look at what MDX actually buys you over plain Markdown or a headless CMS, and where the line starts to hurt."
+date: "2026-01-14"
+tags: ["mdx", "nextjs", "writing"]
+draft: false
+cover: "/images/covers/why-mdx-for-a-developer-blog.png"
+---
+
+Markdown is great for prose. The moment a post needs a live example, a styled
+callout, or a chart, you're stuck pasting in raw HTML and hoping it survives
+your pipeline. MDX closes that gap by letting JSX live directly inside
+Markdown, so the content stays writable while the page stays a real
+component tree.
+
+## What you actually get
+
+- **Real components, not escape hatches.** A `<Callout>` or `<Tabs>` component
+  is just JSX — no special plugin syntax to remember.
+- **Type-checked content.** Frontmatter and props can be validated the same
+  way as the rest of your app.
+- **One render path.** The same MDX renders identically in dev and
+  production because it's compiled, not interpreted at request time by a
+  third-party service.
+
+## A minimal example
+
+Here's the kind of snippet that's painless in MDX and awkward almost
+everywhere else — a fenced code block that gets syntax highlighted at build
+time, not in the browser:
+
+```ts title="lib/posts.ts"
+export function getReadingTime(content: string) {
+  const words = content.trim().split(/\s+/).length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return `${minutes} min read`;
+}
+```
+
+And because the highlighting happens server-side with Shiki, there's no
+client-side syntax highlighter shipped to the browser at all — it's just
+pre-styled `<span>` elements.
+
+## Where it gets harder
+
+> MDX is not free. Every `.mdx` file is compiled, which means a build step,
+> a bundle to reason about, and a slightly higher barrier for non-technical
+> contributors than a plain CMS form.
+
+For a solo dev blog that trade-off is almost always worth it. For a
+multi-author editorial team, it's worth questioning.
+
+| Approach        | Authoring UX        | Component support | Hosting        |
+| ---------------- | ------------------- | ------------------ | -------------- |
+| Plain Markdown    | Great                | None                | Anywhere        |
+| MDX                | Good (needs editor)  | Full JSX            | Needs a build   |
+| Headless CMS       | Best for non-devs    | Limited / custom    | Managed service |
+
+If you're the only one writing, and you already live in an editor, MDX
+removes more friction than it adds.

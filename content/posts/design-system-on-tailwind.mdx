@@ -1,0 +1,79 @@
+---
+title: "Building a Design System on Top of Tailwind"
+description: "Tailwind gives you a constraint system, not a design system. Here's how to turn the former into the latter."
+date: "2026-03-09"
+tags: ["tailwind", "design", "css"]
+draft: false
+cover: "/images/covers/design-system-on-tailwind.png"
+---
+
+Tailwind's utility classes are a constraint system: a fixed scale of
+spacing, color, and type values you pick from instead of inventing new ones
+every time. That's valuable on its own, but it isn't yet a design system —
+that requires naming the choices, not just having a scale to choose from.
+
+## Name your tokens before you use them
+
+Instead of sprinkling `bg-emerald-700` through a codebase, give the color a
+name that describes its job:
+
+```ts title="tailwind.config.ts"
+colors: {
+  accent: {
+    DEFAULT: "#15694F",
+    dark: "#52DDA8",
+  },
+},
+```
+
+Now `bg-accent` means "the brand accent," and when the brand color changes,
+it changes in one place instead of a project-wide find-and-replace.
+
+## Compose, don't duplicate
+
+A repeated class string is a component that hasn't been extracted yet:
+
+```tsx
+// Repeated everywhere
+<span className="rounded-full border border-line px-3 py-1 text-xs font-mono">
+  {tag}
+</span>
+
+// Extracted once
+function TagPill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-line px-3 py-1 text-xs font-mono">
+      {children}
+    </span>
+  );
+}
+```
+
+The utility classes don't go away — they just live in one place instead of
+being copy-pasted across the codebase.
+
+## Dark mode is a token problem, not a class problem
+
+The `dark:` variant is easy to overuse. If a component needs `dark:` on
+every single utility, the tokens underneath are wrong. Mapping `ink` and
+`paper` to different hex values per theme — rather than writing `dark:`
+everywhere — keeps components readable:
+
+```css title="globals.css"
+:root {
+  --ink: 21 24 29;
+}
+.dark {
+  --ink: 234 231 222;
+}
+```
+
+## A short checklist
+
+- Every raw hex value in a component is a token that hasn't been named yet.
+- If you're writing `dark:` more than once per component, fix the token,
+  not the component.
+- A class string repeated three times is a component waiting to be
+  extracted.
+
+Tailwind handles the *how*. The naming and the discipline are still on you.
